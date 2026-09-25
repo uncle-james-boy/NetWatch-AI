@@ -1,0 +1,21 @@
+# Environment variables (NEVER push secrets)
+.env
+.env.local
+
+# Mac OS junk files
+.DS_Store
+
+# Windows junk files
+Thumbs.db
+desktop.ini
+
+# Python junk
+__pycache__/
+*.pyc
+.venv/
+
+# Go junk
+/vendor/
+
+# Node/React Native junk
+node_modules/
