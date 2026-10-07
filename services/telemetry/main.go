@@ -1,37 +1,56 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 )
 
-// This is the main function. When you run the program, this is where it starts.
+// 1. THE BLUEPRINT (Struct)
+// We define what our telemetry data will look like.
+// The text in backticks (like `json:"target"`) tells Go what to name the fields in JSON.
+type HTTPResult struct {
+	Target     string  `json:"target"`
+	StatusCode int     `json:"status_code"`
+	LatencyMs  float64 `json:"latency_ms"`
+	Timestamp  string  `json:"timestamp"`
+	Error      string  `json:"error,omitempty"` // "omitempty" means don't print this if there is no error
+}
+
 func main() {
-	// The URL we want to test
 	url := "http://www.google.com"
 
-	// We record the exact time right before we make the request
+	// 2. MEASURE THE TIME
 	startTime := time.Now()
-
-	// We make a "GET" request to the URL. 
-	// Think of this like your browser asking the server for the webpage.
 	resp, err := http.Get(url)
-
-	// We record the exact time right after the server replies
 	endTime := time.Now()
 
-	// Error handling: If the website is down or we have no internet, 'err' will not be empty.
-	if err != nil {
-		fmt.Println("❌ Network Error:", err)
-		return // Stop the program here if there is an error
+	// Calculate latency in milliseconds (float64)
+	latencyMs := float64(endTime.Sub(startTime).Milliseconds())
+
+	// 3. FILL OUT THE BLUEPRINT
+	result := HTTPResult{
+		Target:    url,
+		LatencyMs: latencyMs,
+		Timestamp: time.Now().Format(time.RFC3339), // Standard cloud time format
 	}
 
-	// Calculate how long the trip took
-	latency := endTime.Sub(startTime)
+	// 4. ERROR HANDLING
+	if err != nil {
+		result.Error = err.Error()
+		result.StatusCode = 0
+	} else {
+		result.StatusCode = resp.StatusCode
+	}
 
-	// Print the results to the terminal
-	fmt.Printf("✅ Successfully reached %s\n", url)
-	fmt.Printf("📊 Status Code: %d\n", resp.StatusCode)
-	fmt.Printf("⏱️ Latency: %v\n", latency)
+	// 5. CONVERT TO JSON (This is called "Marshaling")
+	jsonData, jsonErr := json.MarshalIndent(result, "", "  ")
+	if jsonErr != nil {
+		fmt.Println("Failed to create JSON:", jsonErr)
+		return
+	}
+
+	// 6. PRINT THE JSON
+	fmt.Println(string(jsonData))
 }
