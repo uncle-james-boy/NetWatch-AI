@@ -1,11 +1,11 @@
-version: "3.8"
-
 services:
   localstack:
     container_name: "netwatch-local-aws"
-    image: localstack/localstack
+    image: localstack/localstack:3.8.0
     ports:
       - "4566:4566"
     environment:
       - SERVICES=lambda,apigateway,dynamodb,s3,sns,eventbridge
       - DEBUG=1
+      - LOCALSTACK_AUTH_TOKEN=
+      - LOCALSTACK_API_KEY=
